@@ -1,0 +1,103 @@
+/* Bacon's Default CSS - By zizaco.net */
+
+body{
+	font-family: "Gill Sans MT", "Trebuchet MS", "Arial", "Verdana";
+	background: #151515;
+	color: #FFFFFF;
+	font-size: 12px;
+	
+	margin:0px;
+	padding:0px;
+}
+
+img{  
+	border-style: none;
+}
+
+h1, h2, h3{
+	text-transform: uppercase;
+}
+
+a{
+	color: #FF8400;
+	text-decoration: inherit;
+}
+
+a:hover{
+	color: #ffB440;
+}
+
+strong{
+	color: #EEA800;
+	margin: 0px;
+	text-transform: uppercase;
+}
+
+i{
+	color: #AEBFD9;
+}
+
+h1{
+	color: #1A898A;
+	line-height: 0px;
+	padding-bottom: 15px;
+	text-transform: uppercase;
+}
+
+table{
+	background: #333333;
+	border: 3px dashed #666666;
+	padding: 10px;
+	-webkit-box-shadow: 1px 1px 7px #000000; /* Safari */
+	box-shadow: 1px 1px 7px #000000;
+}
+
+.tablecell{
+	background: #252525;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.tableheader{
+	background: #424242;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.middle{
+	background: #222222;
+	width: 571px;
+	padding: 40px;
+	margin: auto;
+	text-align: justify;
+
+	-webkit-box-shadow: 1px 1px 7px #000000; /* Safari */
+	box-shadow: 1px 1px 7px #000000;
+}
+
+.notification{
+	background: #333333;
+	border: 3px dashed #666666;
+
+	padding: 10px;
+	margin-top: 20px;
+
+	-webkit-box-shadow: 1px 1px 7px #000000; /* Safari */
+	box-shadow: 1px 1px 7px #000000;
+}
+
+.error{
+	background: #903131;
+	border-color: #C15F5F;
+}
+
+.warning{
+	background: #7e7824;
+	border-color: #C1BC66;
+}
+
+.debug{
+	background: #b1b1b1;
+	border-color: #777777;
+	color: #222222;
+}

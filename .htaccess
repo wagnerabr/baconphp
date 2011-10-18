@@ -1,0 +1,8 @@
+Options +FollowSymlinks
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ bacon.php?action=$1 [L]
+    RewriteRule index.php bacon.php [L]
+</IfModule>
