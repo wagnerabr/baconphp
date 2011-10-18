@@ -1,1 +1,4 @@
-Yet another PHP Framework.
+h2. BaconPHP
+p. Yet another PHP Framework.
+
+"by zizaco":http://www.zizaco.net
