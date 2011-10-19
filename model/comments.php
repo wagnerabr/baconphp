@@ -1,18 +1,17 @@
 <?php
-	class PostsModel extends Model
+	class CommentsModel extends Model
 	{
 		/*
 		*  The first field in the schema will always be the primary key.
 		*  If a field's name is 'id' then it will be auto_increment and unsigned.
 		*/
-		var $schema = array(
+		public $schema = array(
 				"id" 		=> array("int"),
 				"created"	=> array("datetime"),
 				"updated"	=> array("datetime"),
-				"tittle" 	=> array("varchar(30)"),
-				"text"		=> array("text")
+				"idposts" 	=> array("int"),
+				"text"		=> array("text"),
+				"author" 	=> array("varchar(15)")
 			);
-
-		var $hasMany = "comments";
 	}
 ?>

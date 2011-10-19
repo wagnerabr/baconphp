@@ -39,7 +39,7 @@
 				$fullpath = MODEL_PATH.$theModel.".php";
 				if(file_exists($fullpath) == true)
 				{
-					include($fullpath);
+					include_once($fullpath);
 					$className = ucfirst($theModel)."Model";
 					$this->model[$theModel] = New $className();
 				}else{

@@ -18,4 +18,9 @@
 		// tidy up: close the handler
 		closedir($handler);
 	}
+
+	function to_array($value)
+	{
+			return (array)$value;
+	}
 ?>
