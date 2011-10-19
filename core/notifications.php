@@ -68,4 +68,10 @@
 
 		return $ret;
 	}
+	function DebugMsg($msg)
+	{
+		echo "<div class='notification debug'>";
+		echo $msg;
+		echo "</div>";
+	}
 ?>
