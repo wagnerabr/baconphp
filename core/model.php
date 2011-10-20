@@ -240,9 +240,6 @@
 					}
 					$query = substr($query,0,-2);
 					$query .= " )";					
-
-
-					//INSERT INTO `bacon`.`categories` (`id`, `created`, `updated`, `name`) VALUES (NULL, '2011-10-20 17:28:14', '2011-10-20 17:28:14', 'Salad');
 					
 				}else{
 					/* Entry exists. Update it */
@@ -282,6 +279,33 @@
 			}
 
 			return $resource;
+		}
+
+		public function create()
+		{
+			$theNew = array();
+			foreach($this->collums as $colname)
+			{
+				$theNew[$colname] = null;
+			}
+
+			return $theNew;
+		}
+
+		public function delete($line)
+		{
+			if(array_key_exists("0",$line))
+			{
+				foreach($line as $realline)
+				{
+					$resource = $this->delete($realline);
+				}
+			}else{
+				$query = "DELETE FROM `".$this->tablename."`";
+				$query = "WHERE `".$this->primaryKey."` = '".$line[$this->primaryKey]."'";
+			}
+
+			$resource = $this->query($query, $this->conn);
 		}
 
 		private function parametrize($params)
