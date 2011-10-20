@@ -48,10 +48,10 @@
 				HandleError("Application","Controller ".$controller." not found.");
 			}
 
-			if(database::$conn != null)
+			if(core::$conn != null)
 			{
-				mysql_close(database::$conn);
-				database::$conn = null;
+				mysql_close(core::$conn);
+				core::$conn = null;
 			}
 		}
 	}

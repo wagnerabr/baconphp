@@ -75,33 +75,57 @@
 		    }
 		}
 
-		public function toTable($array, $attributes)
+		public function toTable($array, $attributes, $recursive = false)
 		{
-			$keys = array_keys($array[0]);
+			if(is_array($array) && array_key_exists(0,$array))
+			{
+				$keys = array_keys($array[0]);
 
-			$table  = $this->startTag("table", $attributes)."\n";
-			$table .= $this->startTag("tr")."\n";
-			foreach($keys as $key)
-			{
-				$table .= $this->startTag("td", array("class"=>"tableheader"));
-				$table .= $this->startTag("strong");
-				$table .= $key;
-				$table .= $this->endTag("strong");
-				$table .= $this->endTag("td")."\n";
-			}
-			$table .= $this->endTag("tr")."\n";
-			foreach($array as $line)
-			{
+				$table  = $this->startTag("table", $attributes)."\n";
 				$table .= $this->startTag("tr")."\n";
 				foreach($keys as $key)
 				{
-					$table .= $this->startTag("td", array("class"=>"tablecell"));
-					$table .= $line[$key];
+					$table .= $this->startTag("td", array("class"=>"tableheader"));
+					$table .= $this->startTag("strong");
+					$table .= $key;
+					$table .= $this->endTag("strong");
 					$table .= $this->endTag("td")."\n";
 				}
 				$table .= $this->endTag("tr")."\n";
+				foreach($array as $line)
+				{
+					$table .= $this->startTag("tr")."\n";
+					foreach($keys as $key)
+					{
+						$table .= $this->startTag("td", array("class"=>"tablecell"));
+						if(is_array($line[$key]))
+						{
+							if($recursive)
+							{
+								$table .= $this->toTable($line[$key], $attributes, true);
+							}else{
+								$table .= count($line[$key])." elements";
+							}
+
+						}else{
+							$table .= $line[$key];	
+						}
+						$table .= $this->endTag("td")."\n";
+					}
+					$table .= $this->endTag("tr")."\n";
+				}
+				$table .= $this->endTag("table")."\n";
+
+			}else{
+				$table  = $this->startTag("table", $attributes)."\n";
+				$table .= $this->startTag("tr")."\n";
+				$table .= $this->startTag("td", array("class"=>"tableheader"));
+				$table .= $this->startTag("strong");
+				$table .= "NULL";
+				$table .= $this->endTag("strong");
+				$table .= $this->endTag("td")."\n";
+				$table .= $this->endTag("table")."\n";
 			}
-			$table .= $this->endTag("table")."\n";
 
 			return $table;
 		}

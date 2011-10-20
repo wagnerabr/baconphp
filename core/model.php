@@ -92,12 +92,13 @@
 			return mysql_query($query, core::$conn);
 		}
 
-		public function all($params = array(), $fullassoc = false)
+		public function all($params = array(), $fullassoc = true)
 		{
 			/* Strat select query */
 			$query = "SELECT ";
 
 			/* Prepare the fields to be selected. Add the primary key to selected fields */
+			$params = (array)$params;
 			if(array_key_exists("fields", $params))
 			{
 				$params["fields"] = (array)$params["fields"];
@@ -129,6 +130,12 @@
 				$result = $this->organize_results($resource, (array_key_exists("fields", $params)) ? $params["fields"] : $this->collums);
 
 				/* Check for associations and recursively select the related lines */
+
+				if($fullassoc)
+				{
+					$params["assoc"] = $this->hasMany;
+				}
+
 				if(array_key_exists("assoc", $params)){
 					$i = 0;
 					$result_assoc = array();
@@ -167,7 +174,7 @@
 					
 					$className = ucfirst($assoc)."Model";
 					$obj = new $className();
-					$answer[$assoc] = array_merge($answer[$assoc], $obj->all(array("where"=>$this->primaryKey.$this->name."=".$id)));
+					$answer[$assoc] = array_merge($answer[$assoc], (array)$obj->all(array("where"=>$this->primaryKey.strtolower($this->name)."=".$id)));
 				}else{
 					//belongsTo
 				}

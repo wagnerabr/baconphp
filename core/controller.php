@@ -4,7 +4,7 @@
 		public $name = null;
 		public $view = null;
 		public $layout = "default";
-		public $models = array();
+		public $models = null;
 		public $model = array(); //instanciated models
 		public $components = array();
 		public $helpers = array("html");
@@ -27,8 +27,8 @@
 			if($this->view === null)
 				$this->view = strtolower($this->name);
 
-			if(count($this->models) == 0)
-				$this->models = array(strtolower($this->name));
+			if(count($this->models) == null)
+				$this->models = (array)strtolower($this->name);
 
 			$this->action = $action;
 			$this->params = $params;
@@ -118,14 +118,21 @@
 				$this->_renderView();
 			$view = ob_get_clean();
 
-			include LAYOUT_PATH.$this->layout.".htm.php";
+			include LAYOUT_PATH.$this->layout.".html.php";
 		}
 
 		function _renderView() {
-			$filename = VIEW_PATH.strtolower($this->view).".htm.php";
+			
+			/* View's filename is <view>_<action>.html.php; Secundary is <view>.html.php */
+			$filename = VIEW_PATH.strtolower($this->view)."_".$this->action.".html.php";
+			if(!file_exists($filename))
+			{
+				$filename = VIEW_PATH.strtolower($this->view).".html.php";
+			}
 
 			if(file_exists($filename))
 			{
+				/* Load related helpers */
 				foreach($this->helpers as $helper)
 				{
 					$theVar = $helper;
@@ -134,6 +141,8 @@
 
 				global $out;
 				$out = $this->out;
+
+				/* Run file */
 				include $filename;
 			}else{
 				echo "view ".$this->view." not found";
