@@ -176,7 +176,9 @@
 					$obj = new $className();
 					$answer[$assoc] = array_merge($answer[$assoc], (array)$obj->all(array("where"=>$this->primaryKey.strtolower($this->name)."=".$id)));
 				}else{
-					//belongsTo
+					/**
+						belongsTo
+					*/
 				}
 			}
 
@@ -199,7 +201,11 @@
 			return $result[0];
 		}
 
-		public function save($line) // NEED TO USE MAGIC QUOTES THREATMENT!!!
+		public function save($line)
+		/**
+			NEED TO USE MAGIC QUOTES THREATMENT!!!
+			NEED TO MAKE IT RECURSIVE TO SAVE ASSOC ARRAYS!!!
+		*/
 		{
 			if(array_key_exists("0",$line))
 			{
@@ -214,9 +220,18 @@
 				$query .= " SET";
 				foreach($keys as $key)
 				{
-					if($key != $this->primaryKey && $key != "updated")
+					if(in_array($key, $this->hasMany))
 					{
-						$query .= " `".$key."`='".$line[$key]."', ";
+						$className = ucfirst($key)."Model";
+						$obj = new $className();
+						$assoc_element = (array)$line[$key];
+						foreach($assoc_element as $element)
+						{
+							$obj->save($element);
+						}
+					}elseif($key != $this->primaryKey && $key != "updated")
+					{
+						$query .= " `".$key."`='".addslashes($line[$key])."', ";
 					}elseif($key == "updated"){
 						$query .= " `".$key."`=NOW(), ";
 					}
