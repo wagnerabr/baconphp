@@ -300,7 +300,7 @@
 			return $theNew;
 		}
 
-		public function delete($line, $deleteAssociatedRegisters = true)
+		public function delete($line, $deleteAssociatedRegisters = false)
 		{
 			if(array_key_exists("0",$line))
 			{
