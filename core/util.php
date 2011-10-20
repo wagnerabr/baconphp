@@ -19,8 +19,4 @@
 		closedir($handler);
 	}
 
-	function to_array($value)
-	{
-			return (array)$value;
-	}
 ?>

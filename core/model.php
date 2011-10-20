@@ -35,7 +35,7 @@
 					}
 				}
 
-				$this->hasMany = to_array($this->hasMany);
+				$this->hasMany = array_merge((array)$this->hasMany,(array)$this->hasOne);
 				if($this->hasMany != null && count($this->hasMany) > 0)
 				{	
 					$this->submodel($this->hasMany);
@@ -90,9 +90,17 @@
 
 		public function all($params = array(), $fullassoc = false)
 		{
+			/* Strat select query */
 			$query = "SELECT ";
+
+			/* Prepare the fields to be selected. Add the primary key to selected fields */
 			if(array_key_exists("fields", $params))
 			{
+				$params["fields"] = (array)$params["fields"];
+				if(!in_array($this->primaryKey,$params["fields"]))
+				{
+					$params["fields"] = array_merge((array)$this->primaryKey, $params["fields"]);
+				}
 				$query .= $this->param_to_fields($params, "fields");
 			}else{
 				foreach($this->collums as $colname)
@@ -101,36 +109,43 @@
 				}
 				$query = substr($query,0,-2);
 			}
+
+			/* FROM keyword. Especify the model's table */
 			$query .=" FROM `".$this->tablename."`";
 			$query .= $this->parametrize($params);
 
+			/* Run query */
 			$resource = $this->query($query, $this->conn);
 			if(!$resource)
 			{
 				HandleError("model.php", "nothing returned.");
 			}else{
-						
+				
+				/* Organize the results array */
 				$result = $this->organize_results($resource, (array_key_exists("fields", $params)) ? $params["fields"] : $this->collums);
+
+				/* Check for associations and recursively select the related lines */
 				if(array_key_exists("assoc", $params)){
 					$i = 0;
 					$result_assoc = array();
 					foreach($result as $line)
 					{
 						$result_assoc[$i] = array();
-						$line = array_merge($line, $this->getAssoc($params["assoc"], $line[$this->primaryKey]));
+						$line = array_merge($line, $this->getAssoc($params["assoc"], $line[$this->primaryKey], true));
 						$result_assoc[$i] = array_merge($result_assoc[$i], $line);
 						$i++;
 						unset($line);
 					}
-					unset($result);
-					$result = $result_assoc;
+					unset($result); //free non associative result
+					$result = $result_assoc; //replace with new array (with associations)
 				}
 				
+				/* Return the processed array */
 				return $result;
 			}
 		}
 
-		private function getAssoc($assoc, $id)
+		private function getAssoc($assoc, $id, $root = false)
 		{
 			$answer = array();
 			$type = null;
@@ -151,6 +166,14 @@
 					$answer[$assoc] = array_merge($answer[$assoc], $obj->all(array("where"=>$this->primaryKey.$this->name."=".$id)));
 				}else{
 					//belongsTo
+				}
+			}
+
+			if($root)
+			{
+				if(!array_key_exists(1,$answer) && in_array($assoc,(array)$this->hasOne))
+				{
+					$answer = $answer[0];
 				}
 			}
 
