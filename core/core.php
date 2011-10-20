@@ -17,6 +17,7 @@
 	{
 
 		private $current_controller;
+		public static $conn;
 
 		public function run($url)
 		{
@@ -45,6 +46,12 @@
 				$this->current_controller->_run();
 			}else{
 				HandleError("Application","Controller ".$controller." not found.");
+			}
+
+			if(database::$conn != null)
+			{
+				mysql_close(database::$conn);
+				database::$conn = null;
 			}
 		}
 	}

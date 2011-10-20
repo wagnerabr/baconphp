@@ -5,12 +5,12 @@
 		public $name = null;
 		public $tablename = null;
 		public $primaryKey = null;
-		public $conn = null;
 		public $hasMany = null;
 		public $hasOne = null;
 		public $belongsTo = null;
 
 		private $collums = array();
+		private static $conn = null;
 
 		public function __construct($action = "index")
 		{
@@ -62,21 +62,25 @@
 
 		private function db_connect()
 		{
-			global $dbconfig;
-			$conn = mysql_connect($dbconfig["host"], $dbconfig["user"], $dbconfig["password"]);
-			if(!$conn)
+			if(core::$conn == null)
 			{
-				HandleError("model.php","Could not connect: ");
-			}else{
-				mysql_select_db($dbconfig["database"], $conn);
+				global $dbconfig;
+				$conn = mysql_connect($dbconfig["host"], $dbconfig["user"], $dbconfig["password"]);
+				if(!$conn)
+				{
+					HandleError("model.php","Could not connect: ");
+				}else{
+					mysql_select_db($dbconfig["database"], $conn);
+				}
+				core::$conn = $conn;
 			}
-			$this->conn = $conn;
-			return $conn;
+			return core::$conn;
 		}
 
 		private function db_disconnect()
 		{
-			mysql_close($this->conn);
+			/*mysql_close(core::$conn);
+			core::$conn = null;*/
 		}
 
 		function __destruct() {
@@ -85,7 +89,7 @@
 
 		public function query($query)
 		{
-			return mysql_query($query/*, $this->conn*/); //Need to create an Static variable to store the model connection or each model.
+			return mysql_query($query, core::$conn);
 		}
 
 		public function all($params = array(), $fullassoc = false)
