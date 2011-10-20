@@ -229,8 +229,16 @@
 					$query .= " VALUES (";
 					foreach($keys as $key)
 					{
-						if($line[$key] == null || $line[$key] == "")
+						if(in_array($key, $this->hasMany))
 						{
+							$className = ucfirst($key)."Model";
+							$obj = new $className();
+							$assoc_element = (array)$line[$key];
+							foreach($assoc_element as $element)
+							{
+								$obj->save($element);
+							}
+						}elseif($line[$key] == null || $line[$key] == ""){
 							$query .= " NULL, ";
 						}elseif($key == "created"){
 							$query .= " NOW(), ";
@@ -292,7 +300,7 @@
 			return $theNew;
 		}
 
-		public function delete($line)
+		public function delete($line, $deleteAssociatedRegisters = true)
 		{
 			if(array_key_exists("0",$line))
 			{
@@ -301,6 +309,27 @@
 					$resource = $this->delete($realline);
 				}
 			}else{
+				if(count($this->hasMany<1))
+					$deleteAssociatedRegisters = false;
+
+				if($deleteAssociatedRegisters)
+				{
+					$keys = array_keys($line);
+					foreach($keys as $key)
+					{
+						if(in_array($key, $this->hasMany))
+						{
+							$className = ucfirst($key)."Model";
+							$obj = new $className();
+							$assoc_element = (array)$line[$key];
+							foreach($assoc_element as $element)
+							{
+								$obj->delete($element);
+							}
+						}
+					}
+				}
+
 				$query = "DELETE FROM `".$this->tablename."`";
 				$query = "WHERE `".$this->primaryKey."` = '".$line[$this->primaryKey]."'";
 			}
