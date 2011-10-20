@@ -193,19 +193,18 @@
 			return $answer;
 		}
 
-		public function first($params = array())
+		public function first($params = array(), $fullassoc = true)
 		{
 			$params["limit"]="1";
-			$result = $this->all($params);
+			$result = $this->all($params, $fullassoc);
 
-			return $result[0];
+			if(array_key_exists(0,(array)$result))
+				$result = $result[0];
+
+			return $result;
 		}
 
-		public function save($line)
-		/**
-			NEED TO USE MAGIC QUOTES THREATMENT!!!
-			NEED TO MAKE IT RECURSIVE TO SAVE ASSOC ARRAYS!!!
-		*/
+		public function save($line, $grabKey = false)
 		{
 			if(array_key_exists("0",$line))
 			{
@@ -215,32 +214,71 @@
 				}
 			}else{
 				$keys = array_keys($line);
-
-				$query = "UPDATE `".$this->tablename."`";
-				$query .= " SET";
-				foreach($keys as $key)
+				$already_exists = $this->first(array("fields"=>$this->primaryKey, "where"=>$this->primaryKey."=".$line[$this->primaryKey]), false);
+				if(count($already_exists)<1)
 				{
-					if(in_array($key, $this->hasMany))
+					/* Entry doesn't exists. Create it */
+
+					$query = "INSERT INTO `".$this->tablename."` (";
+					foreach($keys as $key)
 					{
-						$className = ucfirst($key)."Model";
-						$obj = new $className();
-						$assoc_element = (array)$line[$key];
-						foreach($assoc_element as $element)
-						{
-							$obj->save($element);
-						}
-					}elseif($key != $this->primaryKey && $key != "updated")
-					{
-						$query .= " `".$key."`='".addslashes($line[$key])."', ";
-					}elseif($key == "updated"){
-						$query .= " `".$key."`=NOW(), ";
+						$query .= " `".$key."`, ";
 					}
+					$query = substr($query,0,-2);
+					$query .= " )";
+					$query .= " VALUES (";
+					foreach($keys as $key)
+					{
+						if($line[$key] == null || $line[$key] == "")
+						{
+							$query .= " NULL, ";
+						}elseif($key == "created"){
+							$query .= " NOW(), ";
+						}else{
+							$query .= " '".addslashes($line[$key])."', ";
+						}
+					}
+					$query = substr($query,0,-2);
+					$query .= " )";					
+
+
+					//INSERT INTO `bacon`.`categories` (`id`, `created`, `updated`, `name`) VALUES (NULL, '2011-10-20 17:28:14', '2011-10-20 17:28:14', 'Salad');
+					
+				}else{
+					/* Entry exists. Update it */
+
+					$query = "UPDATE `".$this->tablename."`";
+					$query .= " SET";
+					foreach($keys as $key)
+					{
+						if(in_array($key, $this->hasMany))
+						{
+							$className = ucfirst($key)."Model";
+							$obj = new $className();
+							$assoc_element = (array)$line[$key];
+							foreach($assoc_element as $element)
+							{
+								$obj->save($element);
+							}
+						}elseif($key != $this->primaryKey && $key != "updated")
+						{
+							$query .= " `".$key."`='".addslashes($line[$key])."', ";
+						}elseif($key == "updated"){
+							$query .= " `".$key."`=NOW(), ";
+						}
+					}
+					$query = substr($query,0,-2);
+					$query .= " WHERE `".$this->primaryKey."`";
+					$query .= " = '".$line[$this->primaryKey]."'";
 				}
-				$query = substr($query,0,-2);
-				$query .= " WHERE `".$this->primaryKey."`";
-				$query .= " = '".$line[$this->primaryKey]."'";
 				
 				$resource = $this->query($query, $this->conn);
+
+				if($line[$this->primaryKey] == null && $grabKey)
+				{
+					$line[$this->primaryKey] = $this->first(array("fields"=>$this->primaryKey, "order"=>"`".$this->primaryKey."` DESC"), false);
+					return $line[$this->primaryKey][$this->primaryKey];
+				}
 			}
 
 			return $resource;

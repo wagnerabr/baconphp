@@ -4,7 +4,7 @@
 
 	echo "<br><br>";
 	echo "Array Version:<br><pre>";
-		  print_r($out['fromModel']);
+		  var_dump($out['fromModel']);
 		  echo "</pre><br>"; 
 
 ?>

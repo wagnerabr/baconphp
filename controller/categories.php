@@ -3,12 +3,10 @@
 	{
 		function index()
 		{
-			$array = model("categories")->all(null, true);
-			out("fromModel", $array);
+			$array = model("categories")->all(null, false);
 
-			$array[0]["posts"][0]["comments"][0]["author"] = "Mr. Ocaziz";
-			$array[0]["posts"][1]["tittle"] = "Reborn++";
-			model("categories")->save($array);
+			out("fromModel", $array);
+			
 		}
 	}
 ?>
