@@ -3,7 +3,7 @@
 	{
 		function index()
 		{
-			$array = model("categories")->all(null, false);
+			$array = model("categories")->all(null, true);
 
 			out("fromModel", $array);
 			

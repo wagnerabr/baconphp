@@ -36,9 +36,11 @@
 				}
 
 				$this->hasMany = array_merge((array)$this->hasMany,(array)$this->hasOne);
-				if($this->hasMany != null && count($this->hasMany) > 0)
+				$this->belongsTo = (array)$this->belongsTo;
+
+				if(count($this->hasMany) > 0 || count($this->belongsTo) > 0)
 				{	
-					$this->submodel($this->hasMany);
+					$this->submodel(array_merge($this->hasMany, $this->belongsTo));
 				}
 
 				$this->collums = array_keys($this->schema);
@@ -75,16 +77,6 @@
 				core::$conn = $conn;
 			}
 			return core::$conn;
-		}
-
-		private function db_disconnect()
-		{
-			/*mysql_close(core::$conn);
-			core::$conn = null;*/
-		}
-
-		function __destruct() {
-			$this->db_disconnect();
 		}
 
 		public function query($query)
@@ -133,7 +125,7 @@
 
 				if($fullassoc)
 				{
-					$params["assoc"] = $this->hasMany;
+					$params["assoc"] = array_merge($this->hasMany,$this->belongsTo);
 				}
 
 				if(array_key_exists("assoc", $params)){
@@ -142,7 +134,7 @@
 					foreach($result as $line)
 					{
 						$result_assoc[$i] = array();
-						$line = array_merge($line, $this->getAssoc($params["assoc"], $line[$this->primaryKey], true));
+						$line = array_merge($line, $this->getAssoc($params["assoc"], $line, true));
 						$result_assoc[$i] = array_merge($result_assoc[$i], $line);
 						$i++;
 						unset($line);
@@ -156,7 +148,7 @@
 			}
 		}
 
-		private function getAssoc($assoc, $id, $root = false)
+		private function getAssoc($assoc, $line, $root = false)
 		{
 			$answer = array();
 			$type = null;
@@ -164,21 +156,30 @@
 			{
 				foreach($assoc as $theAssoc)
 				{
-					$answer = array_merge($answer, $this->getAssoc($theAssoc, $id));
+					$answer = array_merge($answer, $this->getAssoc($theAssoc, $line));
 				}
 			}else{
 				if(in_array($assoc, $this->hasMany) && $assoc != null && $assoc != "")
 				{
+					/* HasOne or HasMany */
 					if(!array_key_exists($assoc, $answer))
 						$answer[$assoc] = array();
 					
 					$className = ucfirst($assoc)."Model";
 					$obj = new $className();
-					$answer[$assoc] = array_merge($answer[$assoc], (array)$obj->all(array("where"=>$this->primaryKey.strtolower($this->name)."=".$id)));
+					$answer[$assoc] = array_merge($answer[$assoc], (array)$obj->all(array("where"=>$this->primaryKey.strtolower($this->name)."=".$line[$this->primaryKey])));
 				}else{
-					/**
-						belongsTo
-					*/
+					/* BelongsTo */
+					if(!array_key_exists("belongsTo", $answer))
+						$answer["belongsTo"] = array();
+
+					if(!array_key_exists($assoc, $answer["belongsTo"]))
+						$answer["belongsTo"][$assoc] = array();
+					
+					$className = ucfirst($assoc)."Model";
+					$obj = new $className();
+					$answer["belongsTo"][$assoc] = array_merge($answer["belongsTo"][$assoc], (array)$obj->all(array("where"=>$obj->primaryKey."=".$line[$obj->primaryKey.$assoc]), false));
+					$answer["belongsTo"][$assoc] = $answer["belongsTo"][$assoc][0];
 				}
 			}
 
@@ -265,7 +266,7 @@
 							{
 								$obj->save($element);
 							}
-						}elseif($key != $this->primaryKey && $key != "updated")
+						}elseif($key != $this->primaryKey && $key != "updated" && $key != "belongsTo")
 						{
 							$query .= " `".$key."`='".addslashes($line[$key])."', ";
 						}elseif($key == "updated"){

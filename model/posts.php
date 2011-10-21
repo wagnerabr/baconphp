@@ -14,6 +14,7 @@
 				"text"			=> array("text")
 			);
 
+		var $belongsTo = "categories";
 		var $hasMany = "comments";
 	}
 ?>

@@ -74,7 +74,7 @@
 		if($var_dump)
 		{
 			echo "<pre>";
-			var_dump($msg);	
+			print_r($msg);	
 			echo "</pre>";
 		}else{
 			echo $msg;
