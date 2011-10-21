@@ -68,4 +68,17 @@
 
 		return $ret;
 	}
+	function DebugMsg($msg, $var_dump = false)
+	{
+		echo "<div class='notification debug'>";
+		if($var_dump)
+		{
+			echo "<pre>";
+			print_r($msg);	
+			echo "</pre>";
+		}else{
+			echo $msg;
+		}
+		echo "</div>";
+	}
 ?>
