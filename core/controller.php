@@ -1,4 +1,10 @@
 <?php
+	/**
+	 *	Parent class for all controllers
+	 *	The only method here that will be interesting when creating your own
+	 *	controller is the method out().
+	 *
+	 */
 	class Controller
 	{
 		/**
@@ -218,7 +224,7 @@
 	}
 
 	/**
-	 *  Used to send data to the view easily.
+	 *	Used to send data to the view easily.
 	 *	out("username", "bob") will make "bob" to be available in the view through $out["username"]
 	 *	
 	 *	@param string Data name
@@ -231,7 +237,7 @@
 	}
 
 	/**
-	 *  Used to access the instantiated models inside the controller methods easly.
+	 *	Used to access the instantiated models inside the controller methods easly.
 	 *	If in the definition of your controller, you declare that it will use the user
 	 *	model. An instance of the model will be available in the methods of the
 	 *	controller via model("user").

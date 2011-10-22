@@ -42,20 +42,18 @@
 	set_error_handler(array("BaconException","throwError"), E_ALL );
 
 	/**
-	 * @global Controller a global pointer to the current controller.
+	 *	@global Controller a global pointer to the current controller.
 	 */
 	$_ctrl;
 
 	/**
-	 * @global Used to send data to the view easily.
+	 *	@global Used to send data to the view easily.
 	 */
 	$out;
 
 	/**
-	 *  Core is responsible for managing all activities of the framework.
+	 *	Core is responsible for managing all activities of the framework.
 	 *
-	 *	@copyright Copyright 2011 Luiz Fernando Alves da Silva
-	 *	@license zlib/png license
 	 */
 	class Core
 	{
