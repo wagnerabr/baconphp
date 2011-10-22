@@ -34,6 +34,7 @@
 	require "definitions.php";
 	require "notifications.php";
 	require "controller.php";
+	require "component.php";
 	require "model.php";
 	require "helper.php";
 	require "config/database.php";

@@ -38,6 +38,11 @@
 		public $components = array();
 
 		/**
+		 *	Intantiated components to be avalible to the view easily.
+		 */
+		public $component = array();
+
+		/**
 		 *	Helpers used in controller views.
 		 */
 		public $helpers = array("html");
@@ -97,6 +102,19 @@
 				}
 			}
 
+			/* include the components */
+			foreach($this->components as $theComponent)
+			{
+				$fullpath = COMPONENT_PATH.$theComponent.".php";
+				if(file_exists($fullpath) == true)
+				{
+					include_once($fullpath);
+					$className = ucfirst($theComponent)."Component";
+					$this->component[$theComponent] = New $className();
+				}else{
+					HandleError("Controller".$this->name," Component ".$theComponent." not found.");
+				}
+			}
 
 			HandleMessage("controller.php","Class constructed!");
 
@@ -257,11 +275,39 @@
 	 *		}
 	 *	}
 	 *	</code>
+	 *	
 	 *	@param string Model name. If it has been previously associated with the controller.
 	 */
 	function model($name)
 	{
 		global $_ctrl;
 		return $_ctrl->model[$name];
+	}
+
+	/**
+	 *	Similar to model function it's used to access the instantiated components
+	 *	inside the controller methods easly.
+	 *	If in the definition of your controller, you declare that it will use the fx component.
+	 *	An instance of the component will be available in the methods of the
+	 *	controller via component("fx").
+	 *	<code>
+	 *	//PurchaseController
+	 *	class Purchase extends Controller
+	 *	{
+	 *		components = array("fx");
+	 *	
+	 *		function index()
+	 *		{
+	 *			model("fx")->method();
+	 *		}
+	 *	}
+	 *	</code>
+	 *	
+	 *	@param string Component name. If it has been previously associated with the controller.
+	 */
+	function component($name)
+	{
+		global $_ctrl;
+		return $_ctrl->component[$name];
 	}
 ?>

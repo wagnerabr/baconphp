@@ -25,5 +25,6 @@
 	 */
 	define("LAYOUT_PATH", "view/layout/");
 	define("HELPER_PATH", "view/helper/");
+	define("COMPONENT_PATH", "controller/component/");
 	define("IMAGE_PATH", "resource/img/");
 ?>
