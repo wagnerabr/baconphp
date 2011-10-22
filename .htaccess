@@ -1,3 +1,12 @@
+# BaconPHP is provided under the terms of the zlib/png license. By using this software,
+# you agree with the terms of the zlib/png lisence. The license agreement extends to all
+# the files within this installation.
+# Copyright 2011 Luiz Fernando Alves da Silva
+#
+# The htaccess file basically redirects the link accessed
+# in the form of a $ _GET['action'] parameter to the file
+# bacon.php.
+#
 Options +FollowSymlinks
 <IfModule mod_rewrite.c>
     RewriteEngine On
