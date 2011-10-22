@@ -170,10 +170,10 @@
 				if(file_exists($fullpath) == true)
 				{
 					include($fullpath);
-					$theVar = $helper;
+					$theVar = $helper."Helper";
 					$instance = New $theVar();
-					global $$theVar;
-					$$theVar = $instance;
+					global $$helper;
+					$$helper = $instance;
 				}else{
 					HandleError("Controller".$this->name,"Helper ".$helper." not found.");
 				}

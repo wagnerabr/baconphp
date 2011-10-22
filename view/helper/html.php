@@ -1,5 +1,5 @@
 <?php
-	class Html extends Helper
+	class HtmlHelper extends Helper
 	{
 		public function startTag($name, $attributes = array(), $selfclose = false)
 		{
