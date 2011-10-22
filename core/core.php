@@ -32,7 +32,6 @@
 
 	require "exception.php";
 	require "definitions.php";
-	require "util.php";
 	require "notifications.php";
 	require "controller.php";
 	require "model.php";
