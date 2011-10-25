@@ -169,13 +169,18 @@
 				$fullpath = HELPER_PATH.$helper.".php";
 				if(file_exists($fullpath) == true)
 				{
-					include($fullpath);
-					$theVar = $helper."Helper";
-					$instance = New $theVar();
-					global $$helper;
-					$$helper = $instance;
+					try{
+						include($fullpath);
+						$theVar = $helper."Helper";
+						$instance = New $theVar();
+						global $$helper;
+						$$helper = $instance;
+					}catch(BaconException $ex){
+						$ex->showError("BaconPHP: Helper ".$helper.".php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+					}
 				}else{
-					HandleError("Controller".$this->name,"Helper ".$helper." not found.");
+					$ex = new BaconException(706, "", "", "");
+					$ex->showError("BaconPHP: helper ".$helper.".php not found");
 				}
 			}
 
@@ -202,10 +207,21 @@
 
 			$out = $this->out;
 			ob_start();
-				$this->_renderView();
+			$this->_renderView();
 			$view = ob_get_clean();
 
-			include LAYOUT_PATH.$this->layout.".html.php";
+			$filename = LAYOUT_PATH.$this->layout.".html.php";
+			if(file_exists($filename))
+			{
+				try{
+					include $filename;
+				}catch(BaconException $ex){
+					$ex->showError("BaconPHP: Layout ".$this->layout.".html.php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+				}
+			}else{
+				$ex = new BaconException(706, "", "", "");
+				$ex->showError("BaconPHP: layout ".$this->layout.".html.php not found");
+			}
 		}
 
 		/**
@@ -234,9 +250,14 @@
 				$out = $this->out;
 
 				/* Run file */
-				include $filename;
+				try{
+					include $filename;
+				}catch(BaconException $ex){
+					$ex->showError("BaconPHP: View ".$this->view.".html.php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+				}
 			}else{
-				echo "view ".$this->view." not found";
+				$ex = new BaconException(705, "", "", "");
+				$ex->showError("BaconPHP: view ".$this->view." not found");
 			}
 		}
 	}
@@ -308,6 +329,10 @@
 	function component($name)
 	{
 		global $_ctrl;
-		return $_ctrl->component[$name];
+		try{
+			return $_ctrl->component[$name];
+		}catch(BaconException $ex){
+			$ex->showError("component não importado $name");
+		}
 	}
 ?>

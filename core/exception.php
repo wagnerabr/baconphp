@@ -4,8 +4,8 @@
 
 		public $cod		= 0;
 		public $msg		= "";
-		protected $file 		= "";
-		protected $line 		= 0;
+		public $file 		= "";
+		public $line 		= 0;
 		private $friendlyMsg	= "";
 
 		public function __construct( $cod = 0, $msg, $file, $line )
@@ -67,6 +67,13 @@
 		{
 			throw new BaconException($cod, $msg, $file, $line);
 		}
+
+		static public function throwException( $ex )
+		{
+			$ex->showError();
+		}
 	}
 
+	set_error_handler(array("BaconException","throwError"), E_ALL );
+	set_exception_handler(array("BaconException","throwException"));
 ?>

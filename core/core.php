@@ -38,8 +38,6 @@
 	require "model.php";
 	require "helper.php";
 	require "config/database.php";
-	
-	set_error_handler(array("BaconException","throwError"), E_ALL );
 
 	/**
 	 *	@global Controller a global pointer to the current controller.
@@ -97,12 +95,16 @@
 			$fullpath = CONTROLLER_PATH.$controller.".php";
 			if(file_exists($fullpath) == true)
 			{
-				include($fullpath);
-				$this->current_controller = New $controller($action);
-				global $_ctrl;
-				$_ctrl = $this->current_controller;
+				try{
+					include $fullpath;
+					$this->current_controller = New $controller($action);
+					global $_ctrl;
+					$_ctrl = $this->current_controller;
 
-				$this->current_controller->_run();
+					$this->current_controller->_run();
+				}catch(BaconException $ex){
+					$ex->showError("BaconPHP: Controller ".$controller.".php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+				}
 			}else{
 				HandleError("Application","Controller ".$controller." not found.");
 			}

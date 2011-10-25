@@ -43,6 +43,12 @@
 			return $this->startTag("link",$attributes,true)."\n";
 		}
 
+		public function script($href)
+		{
+			$attributes = array( "type" => "text/javascript", "src" => ROOT.RESOURCE_PATH.$href);
+			return $this->startTag("script",$attributes,false).$this->endTag("script")."\n";
+		}
+
 		public function image($src, $name = "image", $full = false)
 		{
 			$attributes = array( "src" => ROOT.IMAGE_PATH.$src, "alt" => $name);
