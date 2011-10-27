@@ -359,6 +359,10 @@
 			$query .=" FROM `".$this->tablename."`";
 			$query .= $this->parametrize($params);
 
+			/**
+				Verificar erros na Query (fields ou params errados)
+			*/
+
 			/* Run query */
 			$resource = $this->query($query, $this->conn);
 			if(!$resource)
@@ -543,7 +547,12 @@
 						}elseif($key == "created"){
 							$query .= " NOW(), ";
 						}else{
-							$query .= " '".addslashes($line[$key])."', ";
+							if($dbconfig["utf8_encode"])
+							{
+								$query .= " '".utf8_decode(addslashes($line[$key]))."', ";
+							}else{
+								$query .= " '".addslashes($line[$key])."', ";
+							}
 						}
 					}
 					$query = substr($query,0,-2);
@@ -570,7 +579,7 @@
 							$query .= " `".$key."`='".addslashes($line[$key])."', ";
 						}
 					}
-					if(array_key_exists($this->collums, "updated"))
+					if(array_key_exists("updated", $this->collums))
 					{
 						$query .= " `updated`=NOW(), ";
 					}
@@ -675,20 +684,20 @@
 		private function param_to_fields($params, $sulfix)
 		{
 			$ret = "";
-
-			if(array_key_exists($sulfix,$params))
+			$params[$sulfix] = (array)$params[$sulfix];
+			
+			foreach($params[$sulfix] as $theField)
 			{
-				if(is_array($params[$sulfix]))
+				if(in_array($theField,$this->collums))
 				{
-					foreach($params[$sulfix] as $cond)
-					{
-						$ret .= "`".$cond."`, ";
-					}
-					$ret = substr($ret,0,-2);
+					$ret .= "`".$theField."`, ";
 				}else{
-					$ret .= "`".$params[$sulfix]."`";
+					$ex = new BaconException(711, "", "", "");
+					$ex->showError("Field '".$theField,"'' don't exists in '".$this->name."'' model.");
 				}
 			}
+			$ret = substr($ret,0,-2);
+			
 			return $ret;
 		}
 
@@ -702,17 +711,14 @@
 
 			if(array_key_exists($sulfix,$params))
 			{
+				$params[$sulfix] = (array)$params[$sulfix];
+
 				$ret .= " ".$syntax." ";
-				if(is_array($params[$sulfix]))
+				foreach($params[$sulfix] as $cond)
 				{
-					foreach($params[$sulfix] as $cond)
-					{
-						$ret .= $cond.", ";
-					}
-					$ret = substr($ret,0,-2);
-				}else{
-					$ret .= $params[$sulfix];
+					$ret .= $cond.", ";
 				}
+				$ret = substr($ret,0,-2);
 			}
 			return $ret;
 		}
@@ -725,19 +731,20 @@
 		private function organize_results($resource, $collums)
 		{
 			$result = array();
+			$collums = (array)$collums;
+			global $dbconfig;
 
 			$i = 0;
 			while($resarray = mysql_fetch_array($resource))
 			{
 				$result[$i] = array();
-				if(is_array($collums))
+				foreach($collums as $colname)
 				{
-					foreach($collums as $colname)
+					if($dbconfig["utf8_encode"])
 					{
-						$result[$i] = array_merge($result[$i], array($colname => $resarray[$colname]));
+						$resarray[$colname] = utf8_encode($resarray[$colname]);
 					}
-				}else{
-					$result[$i] = array_merge($result[$i], array($collums => $resarray[$collums]));
+					$result[$i] = array_merge($result[$i], array($colname => $resarray[$colname]));
 				}
 				$i++;
 			}

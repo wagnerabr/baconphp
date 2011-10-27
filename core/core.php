@@ -37,7 +37,7 @@
 	require "component.php";
 	require "model.php";
 	require "helper.php";
-	require "config/database.php";
+	require "config/config.php";
 
 	/**
 	 *	@global Controller a global pointer to the current controller.
@@ -106,7 +106,8 @@
 					$ex->showError("BaconPHP: Controller ".$controller.".php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
 				}
 			}else{
-				HandleError("Application","Controller ".$controller." not found.");
+				$ex = new BaconException(702, "", "", "");
+				$ex->showError("Controller ".$controller." not found.");
 			}
 
 			if(core::$conn != null)
@@ -116,5 +117,4 @@
 			}
 		}
 	}
-
 ?>

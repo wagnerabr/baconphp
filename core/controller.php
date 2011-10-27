@@ -25,7 +25,7 @@
 		/**
 		 *	The models used (array) by the controller.
 		 */
-		public $models = null;
+		public $models = "";
 
 		/**
 		 *	Intantiated models to be avalible to the view easily.
@@ -82,23 +82,33 @@
 			if($this->view === null)
 				$this->view = strtolower($this->name);
 
-			if(count($this->models) == null)
+			if($this->models === "")
 				$this->models = (array)strtolower($this->name);
 
 			$this->action = $action;
 			$this->params = $params;
 
 			/* include the models */
-			foreach($this->models as $theModel)
+			if($this->models != null)
 			{
-				$fullpath = MODEL_PATH.$theModel.".php";
-				if(file_exists($fullpath) == true)
+				$this->models = (array)$this->models;
+				foreach($this->models as $theModel)
 				{
-					include_once($fullpath);
-					$className = ucfirst($theModel)."Model";
-					$this->model[$theModel] = New $className();
-				}else{
-					HandleError("Controller".$this->name,"Model ".$theModel." not found.");
+					$fullpath = MODEL_PATH.$theModel.".php";
+					if(file_exists($fullpath) == true)
+					{
+						include_once($fullpath);
+						$className = ucfirst($theModel)."Model";
+						$this->model[$theModel] = New $className();
+					}else{
+						$ex = new BaconException(701, "", "", "");
+						if(strtolower($this->name)==$theModel)
+						{
+							$ex->showError("In controller '".$this->name."' the model '".$theModel."' were not found. If you do not want to use any model in the controller declare the attribute \$models as null inside the controller.");	
+						}else{
+							$ex->showError("In controller '".$this->name."' the model '".$theModel."' were not found.");
+						}
+					}
 				}
 			}
 
@@ -112,7 +122,8 @@
 					$className = ucfirst($theComponent)."Component";
 					$this->component[$theComponent] = New $className();
 				}else{
-					HandleError("Controller".$this->name," Component ".$theComponent." not found.");
+					$ex = new BaconException(708, "", "", "");
+					$ex->showError("Controller '".$this->name,"' Component '".$theComponent."' not found.");
 				}
 			}
 
@@ -140,7 +151,8 @@
 				$this->_render();
 			}else{
 				//handle error
-				echo "<br>method not found";
+				$ex = new BaconException(705, "", "", "");
+				$ex->showError("BaconPHP: method '".$this->name."'->'".$this->action."' not found");
 			}
 
 		}
@@ -176,7 +188,7 @@
 						global $$helper;
 						$$helper = $instance;
 					}catch(BaconException $ex){
-						$ex->showError("BaconPHP: Helper ".$helper.".php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+						$ex->showError("BaconPHP: Helper ".$helper.".php caused a problem.<br /><strong>".$ex->msg." in file at line ".$ex->line."</strong>");
 					}
 				}else{
 					$ex = new BaconException(706, "", "", "");
@@ -216,7 +228,7 @@
 				try{
 					include $filename;
 				}catch(BaconException $ex){
-					$ex->showError("BaconPHP: Layout ".$this->layout.".html.php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+					$ex->showError("BaconPHP: Layout ".$this->layout.".html.php caused a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
 				}
 			}else{
 				$ex = new BaconException(706, "", "", "");
@@ -253,7 +265,7 @@
 				try{
 					include $filename;
 				}catch(BaconException $ex){
-					$ex->showError("BaconPHP: View ".$this->view.".html.php have a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
+					$ex->showError("BaconPHP: View ".$this->view.".html.php caused a problem.<br /><strong>".$ex->msg." at line ".$ex->line."</strong>");
 				}
 			}else{
 				$ex = new BaconException(705, "", "", "");
@@ -332,7 +344,7 @@
 		try{
 			return $_ctrl->component[$name];
 		}catch(BaconException $ex){
-			$ex->showError("component não importado $name");
+			$ex->showError("Component not imported ".$name);
 		}
 	}
 ?>
