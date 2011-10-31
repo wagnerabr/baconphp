@@ -506,6 +506,8 @@
 		 */
 		public function save($line, $grabKey = false)
 		{
+			$resource = false;
+
 			if(array_key_exists("0",$line))
 			{
 				foreach($line as $realline)
@@ -518,6 +520,8 @@
 				if(count($already_exists)<1)
 				{
 					/* Entry doesn't exists. Create it */
+					if(!$this->validate($line, true))
+						return;
 
 					$query = "INSERT INTO `".$this->tablename."` (";
 					foreach($keys as $key)
@@ -543,6 +547,7 @@
 						}elseif($key == "created"){
 							$query .= " NOW(), ";
 						}else{
+							global $dbconfig;
 							if($dbconfig["utf8_encode"])
 							{
 								$query .= " '".utf8_decode(addslashes($line[$key]))."', ";
@@ -556,6 +561,9 @@
 					
 				}else{
 					/* Entry exists. Update it */
+
+					if(!$this->validate($line, true))
+						return;
 
 					$query = "UPDATE `".$this->tablename."`";
 					$query .= " SET";
@@ -586,7 +594,7 @@
 				
 				$resource = $this->query($query, $this->conn);
 
-				if($line[$this->primaryKey] == null && $grabKey)
+				if($line[$this->primaryKey] == null && $grabKey && $this->validate($line))
 				{
 					$line[$this->primaryKey] = $this->first(array("fields"=>$this->primaryKey, "order"=>"`".$this->primaryKey."` DESC"), false);
 					return $line[$this->primaryKey][$this->primaryKey];
@@ -594,6 +602,79 @@
 			}
 
 			return $resource;
+		}
+
+		public function validate($line, $showError = false, $fieldName = false)
+		{
+			$valid = true;
+			$wrongFields = "";
+
+			if(array_key_exists("0",$line))
+			{
+				foreach($line as $realline)
+				{
+					$valid = $valid && $this->validate($realline);
+				}
+			}else{
+				foreach($this->collums as $key)
+				{
+					if($key == "created" || $key == "updated")
+					{
+						continue;
+					}
+					if(array_key_exists($key, $line))
+					{
+						if(in_array("null", $this->schema[$key])==false && $key != $this->primaryKey)
+						{
+							if($line[$key] == "" || $line[$key] == null)
+							{
+								$valid = false;	
+							}
+						}
+					}elseif($line[$this->primaryKey] != "" && $line[$this->primaryKey] != null){
+						$valid = false;
+					}
+					if($valid == false)
+					{
+						if($showError)
+						{
+							$ex = new BaconException(721, "", "", "");
+							$ex->showError("Model '".$this->name."'' validation '".$key."' cannot be null");
+							break;
+						}
+						if($fieldName)
+						{
+							if(!is_array($wrongFields))
+							{
+								$wrongFields = array();
+							}
+							array_push($wrongFields, $key);
+							$valid = true;
+						}
+					}
+				}
+			}
+
+			if($fieldName == false)
+			{
+				return $valid;
+			}else{
+				return $wrongFields;
+			}
+		}
+
+		public function invalidField($line)
+		{
+			if(array_key_exists("0",$line))
+			{
+				foreach($line as $realline)
+				{
+					$invalid = array_merge((array)$invalid, $this->invalidField($realline));
+				}
+			}else{
+				$invalid = (array)$this->validate($line, false, true);
+			}
+			return $invalid;
 		}
 
 		/**
@@ -653,7 +734,7 @@
 				}
 
 				$query = "DELETE FROM `".$this->tablename."`";
-				$query = "WHERE `".$this->primaryKey."` = '".$line[$this->primaryKey]."'";
+				$query .= "WHERE `".$this->primaryKey."` = '".$line[$this->primaryKey]."'";
 			}
 
 			$resource = $this->query($query, $this->conn);
