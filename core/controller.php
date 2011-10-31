@@ -104,9 +104,9 @@
 						$ex = new BaconException(701, "", "", "");
 						if(strtolower($this->name)==$theModel)
 						{
-							$ex->showError("In controller '".$this->name."' the model '".$theModel."' were not found. If you do not want to use any model in the controller declare the attribute \$models as null inside the controller.");	
+							$ex->showError("In controller '".$this->name."' the model '".$theModel."' was not found. If you do not want to use any model in the controller declare the attribute \$models as null inside the controller.");	
 						}else{
-							$ex->showError("In controller '".$this->name."' the model '".$theModel."' were not found.");
+							$ex->showError("In controller '".$this->name."' the model '".$theModel."' was not found.");
 						}
 					}
 				}

@@ -359,10 +359,6 @@
 			$query .=" FROM `".$this->tablename."`";
 			$query .= $this->parametrize($params);
 
-			/**
-				Verificar erros na Query (fields ou params errados)
-			*/
-
 			/* Run query */
 			$resource = $this->query($query, $this->conn);
 			if(!$resource)
