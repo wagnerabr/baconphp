@@ -19,7 +19,7 @@
 			$this->formaction = ROOT.$controller."/".$action."/";
 			$this->goback = ROOT.$controller."/";
 			$this->errors = (array)$errors;
-			return "<form name='author' method='post' action='".$this->formaction."' >\n";
+			return "<form enctype='multipart/form-data' name='author' method='post' action='".$this->formaction."' >\n";
 		}
 
 		function closeForm()
@@ -49,6 +49,23 @@
 		function InputTextArea($name, $value = '')
 		{
 			return "<textarea name='".$name."'>".$value."</textarea>".$this->CheckError($name)."\n";
+		}
+
+		function InputImageUpload($name, $value = '')
+		{
+			$ret = "";
+			if($value != ''){
+				$ret .= "	<script>\n".
+					"		$(document).ready(function(){\n".
+					"			$('#imageUpload').attr('onchange',\"$('#thumb').fadeOut(); $('#filenameUpload').text($('#imageUpload').attr('value').split('\"+\"\\\\\"+\"\\\\\"+\"').pop().split('/').pop());\");\n".
+					"		})\n".
+					"	</script>\n";
+				$ret  .= "<img id='thumb' width='100px' height='100px' src='".ROOT.IMAGE_PATH.$value."' />\n";
+			}
+			$ret .= "<br/><input style=\" height:32px; width:90px; position:relative; z-index:2; cursor:pointer; opacity:0; filter:alpha(opacity=0);\" type='file' name='".$name."' id='imageUpload' size='20' />";
+			$ret .= "<div style='position:relative; height:1px;'><button type='button' class='btn primary' style='position:relative; top:-32px; cursor:pointer;'>Choose file</button> <span style='position:relative; top:-32px;' id='filenameUpload' class='btn disabled'>File.jpg</span></div>";
+
+			return $ret."\n";
 		}
 
 		function ButtonSubmit($text = null)

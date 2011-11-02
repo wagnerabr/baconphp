@@ -210,6 +210,8 @@
 		 */
 		private $collums = array();
 
+		public $image = null;
+
 		/**
 		 *	Initializes the model and load all the related models (associated with
 		 *	the hasMany, hasOne and belongsTo attributes).
@@ -383,6 +385,15 @@
 					{
 						$result_assoc[$i] = array();
 						$line = array_merge($line, $this->getAssoc($params["assoc"], $line, true));
+						if($this->image != null)
+						{
+							$imageFile = $this->image[0]."/".$line[$this->primaryKey].".jpg";
+							if(!file_exists(IMAGE_PATH.$imageFile))
+							{
+								$imageFile = $this->image[0]."/default.jpg";
+							}
+							$line = array_merge($line, array("image"=>$imageFile));
+						}
 						$result_assoc[$i] = array_merge($result_assoc[$i], $line);
 						$i++;
 						unset($line);
@@ -504,7 +515,7 @@
 		 *	@param array Model's corresponding record or array of records.
 		 *	@param bool Return the record's primaryKey (result of an primaryKey=null insert).
 		 */
-		public function save($line, $grabKey = false)
+		public function save($line, $grabKey = true)
 		{
 			$resource = false;
 
@@ -515,6 +526,11 @@
 					$resource = $this->save($realline);
 				}
 			}else{
+				if(array_key_exists("image",$line))
+				{
+					unset($line["image"]);
+				}
+
 				$keys = array_keys($line);
 				$already_exists = $this->first(array("fields"=>$this->primaryKey, "where"=>$this->primaryKey."=".$line[$this->primaryKey]), false);
 				if(count($already_exists)<1)
@@ -600,10 +616,25 @@
 
 				$resource = $this->query($query, $this->conn);
 
-				if($line[$this->primaryKey] == null && $grabKey && $this->validate($line))
+				if($grabKey)
 				{
-					$line[$this->primaryKey] = $this->first(array("fields"=>$this->primaryKey, "order"=>"`".$this->primaryKey."` DESC"), false);
-					return $line[$this->primaryKey][$this->primaryKey];
+					if($line[$this->primaryKey] == null)
+					{
+						$line[$this->primaryKey] = $this->first(array("fields"=>$this->primaryKey, "order"=>"`".$this->primaryKey."` DESC"), false);
+						$primaryKeyValue = $line[$this->primaryKey][$this->primaryKey];
+					}else{
+						$primaryKeyValue = $line[$this->primaryKey];
+					} 
+
+					if($this->image != null){
+						$imagedir = IMAGE_PATH.$this->image[0]."/";
+						if(file_exists($imagedir."pending.jpg"))
+						{
+							rename($imagedir."pending.jpg",$imagedir.$primaryKeyValue.".jpg");
+						}
+					}
+
+					return $primaryKeyValue;
 				}
 			}
 
@@ -698,6 +729,11 @@
 			foreach($this->collums as $colname)
 			{
 				$theNew[$colname] = null;
+			}
+
+			if($this->image != null)
+			{
+				$theNew['image'] = $this->image[0]."/default.jpg";
 			}
 
 			return $theNew;
