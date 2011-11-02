@@ -363,7 +363,7 @@
 			$resource = $this->query($query, $this->conn);
 			if(!$resource)
 			{
-				HandleError("model.php", "nothing returned.");
+				$result = null;
 			}else{
 				
 				/* Organize the results array */
@@ -523,6 +523,12 @@
 					if(!$this->validate($line, true))
 						return;
 
+					if(in_array("created", $this->collums) && !in_array("created", $keys))
+					{
+						array_push($keys,'created');
+						$line["created"] = '';
+					}
+
 					$query = "INSERT INTO `".$this->tablename."` (";
 					foreach($keys as $key)
 					{
@@ -542,10 +548,10 @@
 							{
 								$obj->save($element);
 							}
-						}elseif($line[$key] == null || $line[$key] == ""){
-							$query .= " NULL, ";
 						}elseif($key == "created"){
 							$query .= " NOW(), ";
+						}elseif($line[$key] == null || $line[$key] == ""){
+							$query .= " NULL, ";
 						}else{
 							global $dbconfig;
 							if($dbconfig["utf8_encode"])
@@ -583,7 +589,7 @@
 							$query .= " `".$key."`='".addslashes($line[$key])."', ";
 						}
 					}
-					if(array_key_exists("updated", $this->collums))
+					if(in_array("updated", $this->collums))
 					{
 						$query .= " `updated`=NOW(), ";
 					}
@@ -591,7 +597,7 @@
 					$query .= " WHERE `".$this->primaryKey."`";
 					$query .= " = '".$line[$this->primaryKey]."'";
 				}
-				
+
 				$resource = $this->query($query, $this->conn);
 
 				if($line[$this->primaryKey] == null && $grabKey && $this->validate($line))
@@ -631,7 +637,7 @@
 								$valid = false;	
 							}
 						}
-					}elseif($line[$this->primaryKey] != "" && $line[$this->primaryKey] != null){
+					}elseif($line[$this->primaryKey] == "" || $line[$this->primaryKey] == null){
 						$valid = false;
 					}
 					if($valid == false)
@@ -674,6 +680,8 @@
 			}else{
 				$invalid = (array)$this->validate($line, false, true);
 			}
+			if(count($invalid)==1 && $invalid[0]=="")
+				$invalid = null;
 			return $invalid;
 		}
 
