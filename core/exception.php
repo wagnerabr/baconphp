@@ -27,10 +27,10 @@
 		{
 			$this->friendlyMsg = $friendlyMsg;
 
-			echo "<div class='notification error'>";
+			echo "<div class='alert-message error'>";
 			if($this->friendlyMsg != "")
 			{
-				echo "Error: #".$this->cod." - ".$this->friendlyMsg;	
+				echo "Error: #".$this->cod." - (".$this->file.") ".$this->friendlyMsg;	
 			}else{
 				echo "Error: #".$this->cod." - (".$this->file." line ".$this->line.")".$this->msg;	
 			}
