@@ -45,7 +45,7 @@
 		/**
 		 *	Helpers used in controller views.
 		 */
-		public $helpers = array("html");
+		public $helpers = array("html", "form");
 
 		/**
 		 *	Current action. The action is basically the method that will run.
@@ -113,6 +113,7 @@
 			}
 
 			/* include the components */
+			$this->components = (array)$this->components;
 			foreach($this->components as $theComponent)
 			{
 				$fullpath = COMPONENT_PATH.$theComponent.".php";
@@ -126,9 +127,6 @@
 					$ex->showError("Controller '".$this->name,"' Component '".$theComponent."' not found.");
 				}
 			}
-
-			HandleMessage("controller.php","Class constructed!");
-
 		}
 
 		/**
