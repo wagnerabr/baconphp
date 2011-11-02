@@ -1,6 +1,7 @@
 <?php
 	class HtmlHelper extends Helper
 	{
+
 		public function startTag($name, $attributes = array(), $selfclose = false)
 		{
 			$output = "<".$name;
@@ -49,10 +50,16 @@
 			return $this->startTag("script",$attributes,false).$this->endTag("script")."\n";
 		}
 
-		public function image($src, $name = "image", $full = false)
+		public function image($src, $name = "image", $attributes = array())
 		{
-			$attributes = array( "src" => ROOT.IMAGE_PATH.$src, "alt" => $name);
+			$attributes = array_merge($attributes, array( "src" => ROOT.IMAGE_PATH.$src, "alt" => $name));
 			return $this->startTag("img",$attributes,true);
+		}
+
+		public function link($controller, $content, $attributes = array())
+		{
+			$attributes = array_merge($attributes, array( "href" => ROOT.$controller ));
+			return $this->startTag("a",$attributes,true).$content.$this->endTag("a");
 		}
 
 		public function notifications()
@@ -61,24 +68,36 @@
 
 			if(count($errors)>0)
 			{
-				echo $this->startTag("div",array("class" => "notification error"))."\n";
+				echo $this->startTag("div",array("class" => "alert-message error"))."\n";
 			    echo ShowErrors();
 			    echo $this->endTag("div")."\n";
 		    }
 		    
 		    if(count($warnings)>0)
 			{
-				echo $this->startTag("div",array("class" => "notification warning"))."\n";
+				echo $this->startTag("div",array("class" => "alert-message warning"))."\n";
 			    echo ShowWarnings();
 			    echo $this->endTag("div")."\n";
 		    }
 
 		    if(count($messages)>0)
 			{
-				echo $this->startTag("div",array("class" => "notification"));
+				echo $this->startTag("div",array("class" => "alert-message"));
 			    echo ShowMessages();
 			    echo $this->endTag("div")."\n";
 		    }
+		}
+
+		public function cap($string, $len = 20)
+		{
+			$size = strlen($string)-$len;
+			if($size > 1){
+				$bubble_text = $string;
+				$string = substr_replace($string,"...",-$size);
+
+				$string = "<a title='".str_replace("\'", "&#39;", addslashes($bubble_text))."'>".$string."</a>";
+			}
+			return $string;
 		}
 
 		public function toTable($array, $attributes, $recursive = false)
