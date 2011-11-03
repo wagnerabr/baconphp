@@ -728,7 +728,12 @@
 			$theNew = array();
 			foreach($this->collums as $colname)
 			{
-				$theNew[$colname] = null;
+				if($this->schema[$colname][0] == "enum" || $this->schema[$colname][0] == "set")
+				{
+					$theNew[$colname] = $this->schema[$colname][1][0];
+				}else{
+					$theNew[$colname] = null;
+				}
 			}
 
 			if($this->image != null)
