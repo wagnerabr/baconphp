@@ -92,7 +92,13 @@
 		 */
 		private function run_controller($controller, $action)
 		{
-			$fullpath = CONTROLLER_PATH.$controller.".php";
+			if($controller == "scaffold")
+			{
+				$fullpath = "core/"."scaffold.php";
+			}else{
+				$fullpath = CONTROLLER_PATH.$controller.".php";	
+			}
+
 			if(file_exists($fullpath) == true)
 			{
 				try{
