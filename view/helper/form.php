@@ -51,6 +51,31 @@
 			return "<textarea name='".$name."'>".$value."</textarea>".$this->CheckError($name)."\n";
 		}
 
+		function InputRadio($name, $options, $value = '')
+		{
+			$ret = "";
+			foreach($options as $opt)
+			{
+				$ret .= "<input type='radio' name='".$name."' value='".$opt."' ".($opt==$value ? "checked" : "").">".$opt."&nbsp;&nbsp;\n";
+			}
+			$ret .= $this->CheckError($name)."\n";
+
+			return $ret;
+		}
+
+		function InputCombo($name, $options, $value = '')
+		{
+			$ret = "<select name='".$name."' >";
+			foreach($options as $opt)
+			{
+				$ret .= "<option value='".$opt."' ".($opt==$value ? "selected='selected'" : "").">".$opt."</option>\n";
+			}
+			$ret .= "</select>\n";
+			$ret .= $this->CheckError($name)."\n";
+
+			return $ret;
+		}
+
 		function InputImageUpload($name, $value = '')
 		{
 			$ret = "";
