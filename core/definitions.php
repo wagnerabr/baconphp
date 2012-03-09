@@ -19,6 +19,7 @@
 	define("CONTROLLER_PATH", "controller/");
 	define("RESOURCE_PATH", "resource/");
 	define("RESOURCE", RESOURCE_PATH);
+	define("CONFIG_PATH","config/");	
 
 	/**
 	 *	Sub paths
@@ -27,4 +28,5 @@
 	define("HELPER_PATH", "view/helper/");
 	define("COMPONENT_PATH", "controller/component/");
 	define("IMAGE_PATH", "resource/img/");
+	define("MIGRATION_PATH","config/migrations/");
 ?>

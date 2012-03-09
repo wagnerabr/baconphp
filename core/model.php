@@ -300,6 +300,8 @@
 		 */
 		public function query($query)
 		{
+			if(core::$conn == null)
+				$this->db_connect();
 			return mysql_query($query, core::$conn);
 		}
 

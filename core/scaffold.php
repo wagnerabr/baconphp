@@ -39,7 +39,7 @@
 		public function _run()
 		{
 			$obj = new Scaffold;
-			$obj->make_scaffold("author");
+			$obj->make_scaffold("user");
 		}
 
 		public function make_scaffold($modelname)
@@ -50,7 +50,74 @@
 			$className = ucfirst($modelname)."Model";
 			$model = new $className();
 			
-			$this->scaffold_controller($model);
+			//$this->scaffold_controller($model);
+			//$this->scaffold_db($model);
+			$this->scaffold_view($model);
+		}
+
+		private function scaffold_db($model)
+		{
+			$migration = array();
+			$migration["fileName"] = MIGRATION_PATH.date("YmdHis")."_".strtolower($model->name).".php";
+			$migration["modelName"] = strtolower($model->name);
+			$migration["primaryKey"] = $model->primaryKey;
+
+			$migration["start"] = "CREATE TABLE IF NOT EXISTS `".$migration['modelName']."` (\n";
+			$migration["fields"] = array();
+			$keys = array_keys($model->schema);
+			$i = 0;
+			foreach($keys as $mcollum)
+			{
+				$type = ""; $enum = false;
+				foreach($model->schema[$mcollum] as $def)
+				{
+					if($enum){
+						foreach($def as $subdef){
+							$type .= " \'".$subdef."\',";
+						}
+						$type = substr($type,0,-1);
+						$type .= " )";
+						$enum = false;
+					}elseif($def == "int")
+						$type .= " int(10)";
+					elseif($def == "varchar")
+						$type .= " varchar(20)";
+					elseif($def == "password")
+						$type .= " varchar(32)";
+					elseif($def == "enum"){
+						$type .= " enum(";
+						$enum = true;
+					}else{
+						$type .= " ".$def;
+					}
+				}
+				$migration["fields"][$i] = "	`".$mcollum."`".$type;
+				if($mcollum == $migration["primaryKey"]){
+					$migration["fields"][$i] .= " AUTO_INCREMENT";
+				}
+				$migration["fields"][$i] .= ",\n";
+				$i++;
+			}
+			$migration["end"]  = "		PRIMARY KEY(`".$migration["primaryKey"]."`)\n";
+			$migration["end"] .= "		) AUTO_INCREMENT=1 ;";
+
+			$file = fopen($migration["fileName"],'w');
+			fwrite($file, "<?php\n\t\$sql = '".$migration["start"]."\t");
+			foreach($migration["fields"] as $field)
+			{
+				fwrite($file, "\t".str_replace("\n","\n\t", $field));
+			}
+			fwrite($file, $migration["end"]."';\n");
+			fwrite($file, "\n\t\$clear = 'DROP TABLE IF EXISTS `".$migration['modelName']."`;';\n?>");
+			fclose($file);
+
+			DebugMsg($migration,true);
+
+			include $migration["fileName"];
+			$model->query($clear);
+			$model->query($sql);
+			DebugMsg(mysql_error());
+
 		}
 
 		private function scaffold_controller($model)
@@ -111,8 +178,6 @@
 							"}"
 			);
 
-			DebugMsg($controller,true);
-
 			$file = fopen($controller["fileName"],'w');
 			fwrite($file, "<?php\n\tclass ".$controller["className"]." extends Controller\n\t{\n\n");
 			fwrite($file, "\t\tvar \$components = \"form\";\n\n");
@@ -121,6 +186,128 @@
 				fwrite($file, "\t\t".str_replace("\n","\n\t\t", $method)."\n\n");
 			}
 			fwrite($file,"\t}\n?>");
+			fclose($file);
+		}
+
+		private function scaffold_view($model, $show_created = false, $show_updated = false, $show_id = false)
+		{
+			$object["fields"] = array();
+			$keys = array_keys($model->schema);
+			$i = 0;
+			foreach($keys as $mcollum)
+			{
+				$formMethod = ""; $enum = false; $listParams = "";
+				foreach($model->schema[$mcollum] as $def)
+				{
+					if($enum){
+						foreach($def as $subdef){
+							$listParams .= " '".$subdef."',";
+						}
+						$listParams = substr($listParams,0,-1);
+						$enum = false;
+					}elseif($def == "password"){
+						$formMethod .= "InputPassword";
+					}elseif($def == "enum"){
+						$formMethod .= "InputRadio";
+						$enum = true;
+					}else{
+						$formMethod .= "InputText";
+					}
+				}
+
+				$object["headers"][$i] = $mcollum;
+				$object["fields"][$i] = "";
+				if($formMethod == "InputRadio")
+				{
+					$object["fields"][$i] = "\t\t<tr>\n".
+											"\t\t\t<td>".ucfirst($mcollum)."</td>\n".
+											"\t\t\t<td><?php echo \$form->".$formMethod."(\"".$mcollum."\", array(".$listParams."), \$r[\"".$mcollum."\"]) ?></td>\n".
+											"\t\t</tr>\n";
+				}elseif($formMethod == "InputPassword"){
+					$object["fields"][$i] = "\t\t<tr>\n".
+											"\t\t\t<td>".ucfirst($mcollum)."</td>\n".
+											"\t\t\t<td><?php echo \$form->".$formMethod."(\"".$mcollum."\", \$r[\"".$mcollum."\"]) ?></td>\n".
+											"\t\t</tr>\n".
+											"\t\t<tr>\n".
+											"\t\t\t<td>Verify ".ucfirst($mcollum)."</td>\n".
+											"\t\t\t<td><?php echo \$form->".$formMethod."(\"".$mcollum."2\", \$r[\"".$mcollum."\"]) ?></td>\n".
+											"\t\t</tr>\n";
+				}elseif($mcollum != 'created' && $mcollum != 'updated' && $mcollum != 'id'){
+					$object["fields"][$i] = "\t\t<tr>\n".
+											"\t\t\t<td>".ucfirst($mcollum)."</td>\n".
+											"\t\t\t<td><?php echo \$form->".$formMethod."(\"".$mcollum."\", \$r[\"".$mcollum."\"]) ?></td>\n".
+											"\t\t</tr>\n";
+				}
+				$i++;
+			}
+
+			$view_index["fileName"] = VIEW_PATH.strtolower($model->name)."_scaff.html.php";
+			$view_index["start"] =	"<?php echo \$modal->SetupModal(); ?>\n".
+									"<table class='table table-striped table-bordered'>\n".
+									"	<?php if(count(\$out[\"all\"]) < 1) { ?>\n".
+									"		<tr>\n".
+									"			<td>No records were found</td>\n".
+									"		</tr>\n".
+									"	<?php }else{ ?>\n";
+
+			$view_index["middle"] =	"		<tr>\n";
+			foreach($object["headers"] as $header)
+			{									
+				if($show_created && $header == 'created' || $show_updated && $header == 'updated' || $show_id && $header == 'id' || $header != 'created' && $header != 'updated' && $header != 'id' && $header != 'password')
+					$view_index["middle"] .= "			<th>".ucfirst($header)."</th>\n";
+			}
+			$view_index["middle"] .= "			<th>Action</th>\n".
+									 "		</tr>\n".
+									 "		<?php foreach( \$out[\"all\"] as \$i){ ?>\n".
+									 "			<tr>\n";
+			foreach($object["headers"] as $header)
+			{
+				if($show_created && $header == 'created' || $show_updated && $header == 'updated' || $show_id && $header == 'id' || $header != 'created' && $header != 'updated' && $header != 'id' && $header != 'password')									
+					$view_index["middle"] .= "				<td><?php echo \$i['".$header."']; ?></td>\n";
+			}
+			$view_index["middle"] .= "				<td>\n".
+									 "					<?php echo \$html->link(\"".strtolower($model->name)."/edit/\".\$i[\"id\"],\"Edit\", array(\"class\"=>\"btn btn-small\")); ?>\n".
+									 "					\n".
+									 "					<?php echo \$html->link(\"#the_modal_form\",\"Delete\", array(\"class\"=>\"btn btn-small\", \"onclick\"=>\$modal->ShowModal(\"".strtolower($model->name)."/delete/\".\$i[\"id\"], \"Warning\", \"Are you sure you want to delete \".\$i[\"name\"].\".\", \"Yes\", \"btn btn-danger\"),'data-toggle'=>'modal')); ?>\n".
+									 "				</td>\n".
+									 "			</tr>\n";
+		
+			$view_index["end"] =	"		<?php } ?>\n".
+									"	<?php } ?>\n".
+									"</table>\n".
+									"<?php echo \$html->link('".$model->name."/edit',\"<i class='icon-plus icon-white'></i> Create new\",array('class'=>'btn btn-primary')); ?>\n";
+
+			$file = fopen($view_index["fileName"],'w');
+			fwrite($file, $view_index["start"]);
+			fwrite($file, $view_index["middle"]);
+			fwrite($file, $view_index["end"]);
+			fclose($file);
+
+			$view_edit["fileName"] = VIEW_PATH.strtolower($model->name)."_edit_scaff.html.php";
+			$view_edit["start"] = 	"<?php \$r = \$out[\"record\"]; ?>\n".
+									"<?php echo \$form->OpenForm(\"user\",\"edit\", isset(\$out[\"errors\"]) ? \$out[\"errors\"] : null); ?>\n".
+									"	<?php echo \$form->InputHidden(\"id\", \$r[\"id\"]); ?>\n".
+									"	<table class='table' style='width:400px; margin:auto;'>\n".
+
+			$view_edit["middle"] = "";
+			foreach($object["fields"] as $field)
+			{
+				$view_edit["middle"] .= $field;
+			}
+
+			$view_edit["end"] = 	"		<tr>\n".
+									"			<td colspan='2' class='well'>\n".
+									"				<?php echo \$form->ButtonSubmit() ?>\n".
+									"				<?php echo \$form->ButtonDiscard(\"Cancelar\") ?>\n".
+									"			</td>\n".
+									"		</tr>\n".
+									"	</table>\n".
+									"<?php echo \$form->closeForm(); ?>\n";
+
+			$file = fopen($view_edit["fileName"],'w');
+			fwrite($file, $view_edit["start"]);
+			fwrite($file, $view_edit["middle"]);
+			fwrite($file, $view_edit["end"]);
 			fclose($file);
 		}
 	}
